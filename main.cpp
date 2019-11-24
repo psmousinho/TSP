@@ -39,17 +39,6 @@ int main(int argc, char** argv) {
 
   printRoute(bs);
   cout << "custo: " << bsCost << "|seed: " << seed << endl;
-
-  /*double cost;
-  vector<int> sol = initSol(cost,3,0.5);
-  double newCost= cost;
-  vector<int> sol2 = sol;
-  while(true) {
-    sol2 = RVND(newCost,sol2,newCost);
-    cout << cost << " " << newCost << " " << calCost(sol2) << endl; 
-    printRoute(sol2);
-  }*/
-  
   
   return 0;
 }
@@ -58,7 +47,7 @@ void GILS_RVND(int Ig, int Iils, double alpha, int sizeInitSubTour) {
   for(int i = 0; i < Ig; i++) {
     double cost, newCost;
     vector<int> sol, newSol;
-
+    cout << "reiniciando GRASP " << i << "/" << Ig << endl;
     sol = initSol(cost, sizeInitSubTour, alpha);
     newSol = sol;
     newCost = cost;
@@ -69,6 +58,7 @@ void GILS_RVND(int Ig, int Iils, double alpha, int sizeInitSubTour) {
         sol = newSol;
         cost = newCost;
         j = 0;
+        cout << "reiniciando ILS" << endl;
       }
       newSol = doubleBridge(newCost, sol, cost);
     }
@@ -76,6 +66,7 @@ void GILS_RVND(int Ig, int Iils, double alpha, int sizeInitSubTour) {
     if(cost < bsCost) {
       bs = sol;
       bsCost = cost;
+      cout << "Atualizando melhor custo: " << bsCost << endl;
     }
   }
 }
