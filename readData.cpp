@@ -19,7 +19,7 @@ void readData( int argc, char** argv, int* Dimension, double ***Mdist )
          exit(1);
      }
 
-     if (argc > 2) {
+     if (argc > 3) {
           cout << "\nMuitos parametros\n";
           cout << " ./exec [Instancia] " << endl;
          exit(1);

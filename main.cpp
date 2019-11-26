@@ -10,10 +10,8 @@ using namespace std;
 
 double ** matrizAdj; // matriz de adjacencia
 int dimension; // quantidade total de vertices
-vector<int> bs; //melhor solucao encontrada globalmente
-double bsCost = numeric_limits<double>::infinity(); //custo da melhor solucao
 
-void GILS_RVND(int, int, double, int);
+vector<int> GILS_RVND(double&, int, int, double, int);
 vector<int> initSol(double&, int, double);
 vector<int> RVND(double&, vector<int>, double);
 vector<int> swap(double&, vector<int>, double);
@@ -27,23 +25,33 @@ double calCost(vector<int>);
 
 
 int main(int argc, char** argv) {
-  int seed = time(nullptr);
+  int seed;
+  if(argc == 3) {
+    seed = atoi(argv[2]);
+  } else {
+    seed = time(nullptr);
+  }
   srand(seed);
 
   readData(argc, argv, &dimension, &matrizAdj);
-  
-  if(dimension >= 150)
-    GILS_RVND(50,dimension/2,0.5,3);
-  else
-    GILS_RVND(1,dimension,0.5,3);
 
-  printRoute(bs);
-  cout << "custo: " << bsCost << "|seed: " << seed << endl;
+  double bestCost;
+  vector<int> bestSol;
+  if(dimension >= 150)
+    bestSol = GILS_RVND(bestCost,25,dimension/2,0.5,3);
+  else
+    bestSol = GILS_RVND(bestCost,25,dimension,0.5,3);
+
+  printRoute(bestSol);
+  cout << "instancia: " << argv[1] << " custo: " << bestCost << "|seed: " << seed << endl;
   
   return 0;
 }
 
-void GILS_RVND(int Ig, int Iils, double alpha, int sizeInitSubTour) {
+vector<int> GILS_RVND(double &bestCost, int Ig, int Iils, double alpha, int sizeInitSubTour) {
+  vector<int> bestSol;
+  bestCost = numeric_limits<double>::infinity();
+
   for(int i = 0; i < Ig; i++) {
     double cost, newCost;
     vector<int> sol, newSol;
@@ -51,7 +59,7 @@ void GILS_RVND(int Ig, int Iils, double alpha, int sizeInitSubTour) {
     sol = initSol(cost, sizeInitSubTour, alpha);
     newSol = sol;
     newCost = cost;
-    
+
     for(int j = 0; j < Iils; j++) {
       newSol = RVND(newCost, newSol, newCost);
       if(newCost < cost) {
@@ -63,12 +71,14 @@ void GILS_RVND(int Ig, int Iils, double alpha, int sizeInitSubTour) {
       newSol = doubleBridge(newCost, sol, cost);
     }
 
-    if(cost < bsCost) {
-      bs = sol;
-      bsCost = cost;
-      cout << "Atualizando melhor custo: " << bsCost << endl;
+    if(cost < bestCost) {
+      bestSol = sol;
+      bestCost = cost;
+      cout << "Atualizando melhor custo: " << bestCost << endl;
     }
   }
+
+  return bestSol;
 }
 
 vector<int> initSol(double &cost, int sizeInitSubTour, double alpha) {
@@ -83,45 +93,30 @@ vector<int> initSol(double &cost, int sizeInitSubTour, double alpha) {
     sol.insert(sol.begin() + 1, candidates[j]);
     candidates.erase(candidates.begin() + j);
   }
-  
+
   while(!candidates.empty()) {
     vector<tuple<double,int,int>> costIncert( (sol.size()-1) * candidates.size());
-    
+
     for(int pos = 1, l = 0; pos < sol.size(); pos++) {
       for(int k = 0; k < candidates.size(); k++){
         double delta = matrizAdj[sol[pos-1]][candidates[k]] + matrizAdj[sol[pos]][candidates[k]] - matrizAdj[sol[pos-1]][sol[pos]];
         costIncert[l++] = make_tuple(delta,pos,k);
       }
-    }  
-    
+    }
+
     sort(costIncert.begin(), costIncert.end());
     int index = rand()%  (int) floor(alpha*costIncert.size());
     sol.insert(sol.begin() + get<1>(costIncert[index]), candidates[get<2>(costIncert[index])]);
     cost += get<0>(costIncert[index]);
     candidates.erase(candidates.begin() + get<2>(costIncert[index]));
-      
-    #ifdef DEBUG_INIT
-      cout << "\n";
-      for(int i = 0; i < costIncert.size();i++) {
-        cout <<  get<0>(costIncert[i]) << ";" << get<1>(costIncert[i]) << ";" << get<2>(costIncert[i]) << "||";
-      }
-      cout << "\n\n";
-      cout <<  get<0>(costIncert[index]) << ";" << get<1>(costIncert[index]) << ";" << get<2>(costIncert[index]) << "||";
-      cout << "\n";
-      for(int i = 0; i < candidates.size();i++) {
-        cout <<  candidates[i] << "|~|";
-      }
-      cout << "\n";
-      printRoute(sol);
-    #endif
   }
 
   return sol;
 }
 
 vector<int> RVND(double &newCost, vector<int> sol, double cost) {
-  vector<int> neighbors = {1,2};
-  
+  vector<int> neighbors = {1,2,3};
+
   while(!neighbors.empty()) {
     int index = rand()% neighbors.size();
     double moveCost;
@@ -141,7 +136,7 @@ vector<int> RVND(double &newCost, vector<int> sol, double cost) {
     if(moveCost < cost) {
       sol = newSol;
       cost = moveCost;
-      neighbors = {1,2};
+      neighbors = {1,2,3};
     } else {
       neighbors.erase(neighbors.begin()+index);
     }
@@ -154,7 +149,7 @@ vector<int> RVND(double &newCost, vector<int> sol, double cost) {
 vector<int> swap(double &newCost, vector<int> sol, double oldCost) {
   int pos1, pos2;
   newCost = numeric_limits<double>::infinity();
-  
+
   for(int i = 1; i < sol.size()-1; i++) {
     for(int j = i+1; j < sol.size()-1; j++) {
       double newDelta;
@@ -171,7 +166,7 @@ vector<int> swap(double &newCost, vector<int> sol, double oldCost) {
       }
     }
   }
-  
+
   int aux = sol[pos1];
   sol[pos1] = sol[pos2];
   sol[pos2] = aux;
@@ -183,7 +178,7 @@ vector<int> swap(double &newCost, vector<int> sol, double oldCost) {
 vector<int> two_opt(double &newCost, vector<int> sol, double oldCost) {
   int pos1, pos2;
   newCost = numeric_limits<double>::infinity();
-  
+
   for(int i = 1; i < sol.size()-1; i++) {
     for(int j = i+1; j < sol.size()-1; j++) {
       double newDelta =  matrizAdj[sol[i-1]][sol[j]] + matrizAdj[sol[j+1]][sol[i]] - matrizAdj[sol[i-1]][sol[i]] - matrizAdj[sol[j+1]][sol[j]];
@@ -194,16 +189,46 @@ vector<int> two_opt(double &newCost, vector<int> sol, double oldCost) {
       }
     }
   }
-  
+
   reverse(sol.begin() + pos1, sol.begin() + pos2+1);
-  
+
   newCost += oldCost;
   return sol;
 }
 
-//todo
 vector<int> reinsertion(double &newCost, vector<int> sol, double oldCost) {
-  
+  int pos1, pos2;
+  newCost = numeric_limits<double>::infinity();
+
+  int k = (random() %3) + 1;
+  for(int i = 1; i < sol.size()-k-1; i++) {
+    for(int j = 1; j < sol.size(); j++) {
+      if(j >= i && j <= i+k)
+        continue;
+      
+      double newDelta = matrizAdj[sol[j-1]][sol[i]] + matrizAdj[sol[i+k-1]][sol[j]] + matrizAdj[sol[i-1]][sol[i+k]]
+                      - matrizAdj[sol[i-1]][sol[i]] - matrizAdj[sol[i+k-1]][sol[i+k]] - matrizAdj[sol[j-1]][sol[j]];
+      if(newDelta < newCost) {
+        pos1 = i;
+        pos2 = j;
+        newCost = newDelta;
+      }
+    }
+  }
+
+  vector<int> vec;
+  if(pos1 < pos2) {
+    vec.insert(vec.end(),sol.begin()+pos1,sol.begin()+pos1+k);
+    sol.erase(sol.begin()+pos1,sol.begin()+pos1+k);
+    sol.insert(sol.begin()+pos2-k,vec.begin(),vec.end());
+  } else {
+    vec.insert(vec.end(),sol.begin()+pos1,sol.begin()+pos1+k);
+    sol.erase(sol.begin()+pos1,sol.begin()+pos1+k);
+    sol.insert(sol.begin()+pos2,vec.begin(),vec.end());
+  }
+
+  newCost += oldCost;
+  return sol;
 }
 
 vector<int> doubleBridge(double &newCost, const vector<int> &sol, double oldCost) {
@@ -211,17 +236,17 @@ vector<int> doubleBridge(double &newCost, const vector<int> &sol, double oldCost
   int pos1 = 1 + rand()%intervalSize;
   int pos2 = pos1 + 1 + rand()%intervalSize;
   int pos3 = pos2 + 1 + rand()%intervalSize;
-  
+
   vector<int> vec;
   vec.insert(vec.end(),sol.begin(),sol.begin()+pos1);
   vec.insert(vec.end(),sol.begin()+pos3,sol.end()-1);
   vec.insert(vec.end(),sol.begin()+pos2,sol.begin()+pos3);
   vec.insert(vec.end(),sol.begin()+pos1,sol.begin()+pos2);
-  vec.insert(vec.end(), 1);
+  vec.insert(vec.end(), sol[0]);
 
   newCost = matrizAdj[sol[pos1-1]][sol[pos3]] + matrizAdj[sol[sol.size()-2]][sol[pos2]] + matrizAdj[sol[pos3-1]][sol[pos1]] + matrizAdj[sol[pos2-1]][sol[0]]
            -matrizAdj[sol[pos1-1]][sol[pos1]] - matrizAdj[sol[pos2-1]][sol[pos2]] - matrizAdj[sol[pos3-1]][sol[pos3]] - matrizAdj[sol[sol.size()-2]][sol[0]];
-  
+
   newCost += oldCost;
   return vec;
 }
@@ -268,7 +293,7 @@ vector<int> cheapsterInsertion(double &cost, int sizeInitSubTour, double alpha) 
     sol.insert(sol.begin() + 1, candidates[j]);
     candidates.erase(candidates.begin() + j);
   }
-  
+
   while(!candidates.empty()) {
     int pos, cand;
     double delta = numeric_limits<double>::infinity();
@@ -281,12 +306,12 @@ vector<int> cheapsterInsertion(double &cost, int sizeInitSubTour, double alpha) 
           cand = j;
         }
       }
-    }  
-    
+    }
+
     sol.insert(sol.begin() + pos, candidates[cand]);
     cost += delta;
     candidates.erase(candidates.begin() + cand);
-      
+
     #ifdef DEBUG_INIT
       cout << "\n";
       for(int i = 0; i < costIncert.size();i++) {
@@ -310,7 +335,7 @@ vector<int> nearestNeighbor(double &cost) {
   vector<int> sol = {1};
   vector<int> candidates(dimension-1);
   iota(candidates.begin(),candidates.end(), 2);
-  
+
   while(!candidates.empty()) {
     int cand;
     double delta = numeric_limits<double>::infinity();
@@ -329,6 +354,13 @@ vector<int> nearestNeighbor(double &cost) {
 
   cost += matrizAdj[sol.back()][1];
   sol.push_back(1);
-  
+
+  return sol;
+}
+
+vector<int> randomNeighborhood(double &newCost, vector<int> sol) {
+  random_shuffle(sol.begin()+1,sol.end()-1);
+
+  newCost = calCost(sol);
   return sol;
 }
