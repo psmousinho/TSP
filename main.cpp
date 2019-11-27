@@ -3,7 +3,7 @@
 #include <iostream>
 #include <numeric>
 #include <vector>
-#include <math.h>
+#include <cmath>
 #include <tuple>
 
 using namespace std;
@@ -25,9 +25,9 @@ double calCost(vector<int>);
 
 
 int main(int argc, char** argv) {
-  int seed;
+  long int seed;
   if(argc == 3) {
-    seed = atoi(argv[2]);
+    seed = atol(argv[2]);
   } else {
     seed = time(nullptr);
   }
