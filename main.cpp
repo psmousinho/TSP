@@ -38,9 +38,9 @@ int main(int argc, char** argv) {
   double bestCost;
   vector<int> bestSol;
   if(dimension >= 150)
-    bestSol = GILS_RVND(bestCost,25,dimension/2,0.5,3);
+    bestSol = GILS_RVND(bestCost,50,dimension/2,0.5,3);
   else
-    bestSol = GILS_RVND(bestCost,25,dimension,0.5,3);
+    bestSol = GILS_RVND(bestCost,50,dimension,0.5,3);
 
   printRoute(bestSol);
   cout << "instancia: " << argv[1] << " custo: " << bestCost << "|seed: " << seed << endl;
@@ -55,7 +55,7 @@ vector<int> GILS_RVND(double &bestCost, int Ig, int Iils, double alpha, int size
   for(int i = 0; i < Ig; i++) {
     double cost, newCost;
     vector<int> sol, newSol;
-    cout << "reiniciando GRASP " << i << "/" << Ig << endl;
+    //cout << "reiniciando GRASP " << i << "/" << Ig << endl;
     sol = initSol(cost, sizeInitSubTour, alpha);
     newSol = sol;
     newCost = cost;
@@ -66,7 +66,6 @@ vector<int> GILS_RVND(double &bestCost, int Ig, int Iils, double alpha, int size
         sol = newSol;
         cost = newCost;
         j = 0;
-        cout << "reiniciando ILS" << endl;
       }
       newSol = doubleBridge(newCost, sol, cost);
     }
@@ -74,7 +73,7 @@ vector<int> GILS_RVND(double &bestCost, int Ig, int Iils, double alpha, int size
     if(cost < bestCost) {
       bestSol = sol;
       bestCost = cost;
-      cout << "Atualizando melhor custo: " << bestCost << endl;
+      //cout << "Atualizando melhor custo: " << bestCost << endl;
     }
   }
 
@@ -95,20 +94,20 @@ vector<int> initSol(double &cost, int sizeInitSubTour, double alpha) {
   }
 
   while(!candidates.empty()) {
-    vector<tuple<double,int,int>> costIncert( (sol.size()-1) * candidates.size());
+    vector<tuple<double,int,int>> costInsert( (sol.size()-1) * candidates.size());
 
     for(int pos = 1, l = 0; pos < sol.size(); pos++) {
       for(int k = 0; k < candidates.size(); k++){
         double delta = matrizAdj[sol[pos-1]][candidates[k]] + matrizAdj[sol[pos]][candidates[k]] - matrizAdj[sol[pos-1]][sol[pos]];
-        costIncert[l++] = make_tuple(delta,pos,k);
+        costInsert[l++] = make_tuple(delta,pos,k);
       }
     }
 
-    sort(costIncert.begin(), costIncert.end());
-    int index = rand()%  (int) floor(alpha*costIncert.size());
-    sol.insert(sol.begin() + get<1>(costIncert[index]), candidates[get<2>(costIncert[index])]);
-    cost += get<0>(costIncert[index]);
-    candidates.erase(candidates.begin() + get<2>(costIncert[index]));
+    sort(costInsert.begin(), costInsert.end());
+    int index = rand()%  (int) floor(alpha*costInsert.size());
+    sol.insert(sol.begin() + get<1>(costInsert[index]), candidates[get<2>(costInsert[index])]);
+    cost += get<0>(costInsert[index]);
+    candidates.erase(candidates.begin() + get<2>(costInsert[index]));
   }
 
   return sol;
