@@ -1,2 +1,2 @@
 # TSP
-Solving TSP by GILS-RVND
+Solving TSP by GRASP-ILS-RVND
