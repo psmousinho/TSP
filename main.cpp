@@ -26,12 +26,12 @@ void printRoute(vector<int>);
 int main(int argc, char** argv) {
   if (argc < 2) {
    cout << "\nFaltando parametros\n";
-   cout << " ./exec [Instancia] <Seed> "<< endl;
+   cout << " ./exec Instancia [Seed] "<< endl;
    exit(1);
   }
   if (argc > 3) {
     cout << "\nMuitos parametros\n";
-    cout << " ./exec [Instancia] <Seed>" << endl;
+    cout << " ./exec Instancia [Seed]" << endl;
     exit(1);
   }
   
