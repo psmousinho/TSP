@@ -5,6 +5,7 @@
 #include <vector>
 #include <cmath>
 #include <tuple>
+#include<chrono>
 
 using namespace std;
 
@@ -21,10 +22,19 @@ vector<int> doubleBridge(double&, const vector<int>&, double);
 
 void printMatrizAdj();
 void printRoute(vector<int>);
-double calCost(vector<int>);
-
 
 int main(int argc, char** argv) {
+  if (argc < 2) {
+   cout << "\nFaltando parametros\n";
+   cout << " ./exec [Instancia] <Seed> "<< endl;
+   exit(1);
+  }
+  if (argc > 3) {
+    cout << "\nMuitos parametros\n";
+    cout << " ./exec [Instancia] <Seed>" << endl;
+    exit(1);
+  }
+  
   long int seed;
   if(argc == 3) {
     seed = atol(argv[2]);
@@ -33,7 +43,9 @@ int main(int argc, char** argv) {
   }
   srand(seed);
 
-  readData(argc, argv, &dimension, &matrizAdj);
+  readData(argv[1], &dimension, &matrizAdj);
+  
+  auto start = chrono::steady_clock::now();
 
   double bestCost;
   vector<int> bestSol;
@@ -42,8 +54,15 @@ int main(int argc, char** argv) {
   else
     bestSol = GILS_RVND(bestCost,50,dimension,0.5,3);
 
+  auto time = chrono::steady_clock::now() - start;
+  
+  cout << 
+  "INSTANCE: " << argv[1] << endl <<
+  "COST: " << bestCost << endl <<
+  "SEED: " << seed << endl <<
+  "EXECUTION TIME: " << time.count() << endl <<
+  "ROUTE: ";
   printRoute(bestSol);
-  cout << "instancia: " << argv[1] << " custo: " << bestCost << "|seed: " << seed << endl;
   
   return 0;
 }
@@ -263,19 +282,12 @@ void printMatrizAdj() {
 }
 
 void printRoute(vector<int> route) {
-  cout << "\n";
-  for(int i = 0; i < route.size();i++) {
+  int i;
+  cout << "{";
+  for(i = 0; i < route.size()-1;i++) {
     cout << route[i] << ",";
   }
-  cout << "\n";
-}
-
-double calCost(vector<int> route) {
-  double cost = 0;
-  for(size_t i = 0; i < route.size() -1; i++) {
-    cost += matrizAdj[route[i]][route[i+1]];
-  }
-  return cost;
+  cout <<route[i]<< "}\n\n";
 }
 
 /*#################################################################################################*/
@@ -310,21 +322,6 @@ vector<int> cheapsterInsertion(double &cost, int sizeInitSubTour, double alpha) 
     sol.insert(sol.begin() + pos, candidates[cand]);
     cost += delta;
     candidates.erase(candidates.begin() + cand);
-
-    #ifdef DEBUG_INIT
-      cout << "\n";
-      for(int i = 0; i < costIncert.size();i++) {
-        cout <<  get<0>(costIncert[i]) << ";" << get<1>(costIncert[i]) << ";" << get<2>(costIncert[i]) << "||";
-      }
-      cout << "\n\n";
-      cout <<  get<0>(costIncert[index]) << ";" << get<1>(costIncert[index]) << ";" << get<2>(costIncert[index]) << "||";
-      cout << "\n";
-      for(int i = 0; i < candidates.size();i++) {
-        cout <<  candidates[i] << "|~|";
-      }
-      cout << "\n";
-      printRoute(sol);
-    #endif
   }
 
   return sol;
@@ -339,7 +336,7 @@ vector<int> nearestNeighbor(double &cost) {
     int cand;
     double delta = numeric_limits<double>::infinity();
     for(int i = 0; i < candidates.size(); i++) {
-      double newDelta = matrizAdj[sol.back()][i];
+      double newDelta = matrizAdj[sol.back()][candidates[i]];
       if(newDelta < delta) {
         delta = newDelta;
         cand = i;
@@ -360,6 +357,10 @@ vector<int> nearestNeighbor(double &cost) {
 vector<int> randomNeighborhood(double &newCost, vector<int> sol) {
   random_shuffle(sol.begin()+1,sol.end()-1);
 
-  newCost = calCost(sol);
+  newCost = 0;
+  for(size_t i = 0; i < sol.size() -1; i++) {
+    newCost += matrizAdj[sol[i]][sol[i+1]];
+  }
+
   return sol;
 }
