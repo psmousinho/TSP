@@ -16,7 +16,7 @@ vector<int> GILS_RVND(double&, int, int, double, int);
 vector<int> initSol(double&, int, double);
 vector<int> RVND(double&, vector<int>, double);
 vector<int> swap(double&, vector<int>, double);
-vector<int> reinsertion(double&, vector<int>, double);
+vector<int> reinsertion(double&, vector<int>, double, int);
 vector<int> two_opt(double&, vector<int>, double);
 vector<int> doubleBridge(double&, const vector<int>&, double);
 
@@ -44,23 +44,18 @@ int main(int argc, char** argv) {
   srand(seed);
 
   readData(argv[1], &dimension, &matrizAdj);
-  
-  auto start = chrono::steady_clock::now();
 
   double bestCost;
   vector<int> bestSol;
   if(dimension >= 150)
-    bestSol = GILS_RVND(bestCost,50,dimension/2,0.5,3);
+    bestSol = GILS_RVND(bestCost,10,dimension/2,0.5,3);
   else
-    bestSol = GILS_RVND(bestCost,50,dimension,0.5,3);
-
-  auto time = chrono::steady_clock::now() - start;
+    bestSol = GILS_RVND(bestCost,25,dimension,0.5,3);
   
   cout << 
   "INSTANCE: " << argv[1] << endl <<
   "COST: " << bestCost << endl <<
   "SEED: " << seed << endl <<
-  "EXECUTION TIME: " << time.count() << endl <<
   "ROUTE: ";
   printRoute(bestSol);
   
@@ -74,7 +69,7 @@ vector<int> GILS_RVND(double &bestCost, int Ig, int Iils, double alpha, int size
   for(int i = 0; i < Ig; i++) {
     double cost, newCost;
     vector<int> sol, newSol;
-    //cout << "reiniciando GRASP " << i << "/" << Ig << endl;
+    cout << "reiniciando GRASP " << i << "/" << Ig << endl;
     sol = initSol(cost, sizeInitSubTour, alpha);
     newSol = sol;
     newCost = cost;
@@ -92,7 +87,7 @@ vector<int> GILS_RVND(double &bestCost, int Ig, int Iils, double alpha, int size
     if(cost < bestCost) {
       bestSol = sol;
       bestCost = cost;
-      //cout << "Atualizando melhor custo: " << bestCost << endl;
+      cout << "Atualizando melhor custo: " << bestCost << endl;
     }
   }
 
@@ -133,7 +128,7 @@ vector<int> initSol(double &cost, int sizeInitSubTour, double alpha) {
 }
 
 vector<int> RVND(double &newCost, vector<int> sol, double cost) {
-  vector<int> neighbors = {1,2,3};
+  vector<int> neighbors = {1,2,3,4,5};
 
   while(!neighbors.empty()) {
     int index = rand()% neighbors.size();
@@ -147,14 +142,20 @@ vector<int> RVND(double &newCost, vector<int> sol, double cost) {
         newSol = two_opt(moveCost, sol, cost);
         break;
       case 3:
-        newSol = reinsertion(moveCost, sol, cost);
+        newSol = reinsertion(moveCost, sol, cost,1);
+        break;
+      case 4:
+        newSol = reinsertion(moveCost, sol, cost,2);
+        break;
+      case 5:
+        newSol = reinsertion(moveCost, sol, cost,3);
         break;
     }
 
     if(moveCost < cost) {
       sol = newSol;
       cost = moveCost;
-      neighbors = {1,2,3};
+      neighbors = {1,2,3,4,5};
     } else {
       neighbors.erase(neighbors.begin()+index);
     }
@@ -169,13 +170,15 @@ vector<int> swap(double &newCost, vector<int> sol, double oldCost) {
   newCost = numeric_limits<double>::infinity();
 
   for(int i = 1; i < sol.size()-1; i++) {
+    double aux1 = - matrizAdj[sol[i]][sol[i-1]] - matrizAdj[sol[i]][sol[i+1]];
+    double aux2 = - matrizAdj[sol[i-1]][sol[i]];
     for(int j = i+1; j < sol.size()-1; j++) {
       double newDelta;
       if(i != j-1){
-        newDelta = matrizAdj[sol[i]][sol[j-1]] + matrizAdj[sol[i]][sol[j+1]] + matrizAdj[sol[j]][sol[i-1]] + matrizAdj[sol[j]][sol[i+1]]
-                 - matrizAdj[sol[i]][sol[i-1]] - matrizAdj[sol[i]][sol[i+1]] - matrizAdj[sol[j]][sol[j-1]] - matrizAdj[sol[j]][sol[j+1]];
+        newDelta = aux1 + matrizAdj[sol[i]][sol[j-1]] + matrizAdj[sol[i]][sol[j+1]] + matrizAdj[sol[j]][sol[i-1]] + matrizAdj[sol[j]][sol[i+1]]
+                  - matrizAdj[sol[j]][sol[j-1]] - matrizAdj[sol[j]][sol[j+1]] ;
       } else {
-        newDelta = matrizAdj[sol[i-1]][sol[j]] + matrizAdj[sol[j+1]][sol[i]] - matrizAdj[sol[i-1]][sol[i]] - matrizAdj[sol[j+1]][sol[j]];
+        newDelta = aux2 + matrizAdj[sol[i-1]][sol[j]] + matrizAdj[sol[j+1]][sol[i]] - matrizAdj[sol[j+1]][sol[j]];
       }
       if(newDelta < newCost){
         pos1 = i;
@@ -198,8 +201,9 @@ vector<int> two_opt(double &newCost, vector<int> sol, double oldCost) {
   newCost = numeric_limits<double>::infinity();
 
   for(int i = 1; i < sol.size()-1; i++) {
+    double aux = - matrizAdj[sol[i-1]][sol[i]];
     for(int j = i+1; j < sol.size()-1; j++) {
-      double newDelta =  matrizAdj[sol[i-1]][sol[j]] + matrizAdj[sol[j+1]][sol[i]] - matrizAdj[sol[i-1]][sol[i]] - matrizAdj[sol[j+1]][sol[j]];
+      double newDelta =  aux + matrizAdj[sol[i-1]][sol[j]] + matrizAdj[sol[j+1]][sol[i]] - matrizAdj[sol[j+1]][sol[j]];
       if(newDelta < newCost){
         pos1 = i;
         pos2 = j;
@@ -214,18 +218,17 @@ vector<int> two_opt(double &newCost, vector<int> sol, double oldCost) {
   return sol;
 }
 
-vector<int> reinsertion(double &newCost, vector<int> sol, double oldCost) {
+vector<int> reinsertion(double &newCost, vector<int> sol, double oldCost, int tam) {
   int pos1, pos2;
   newCost = numeric_limits<double>::infinity();
 
-  int k = (random() %3) + 1;
-  for(int i = 1; i < sol.size()-k-1; i++) {
+  for(int i = 1; i < sol.size()-tam-1; i++) {
+    double aux = + matrizAdj[sol[i-1]][sol[i+tam]] - matrizAdj[sol[i-1]][sol[i]];
     for(int j = 1; j < sol.size(); j++) {
-      if(j >= i && j <= i+k)
+      if(j >= i && j <= i+tam)
         continue;
       
-      double newDelta = matrizAdj[sol[j-1]][sol[i]] + matrizAdj[sol[i+k-1]][sol[j]] + matrizAdj[sol[i-1]][sol[i+k]]
-                      - matrizAdj[sol[i-1]][sol[i]] - matrizAdj[sol[i+k-1]][sol[i+k]] - matrizAdj[sol[j-1]][sol[j]];
+      double newDelta = aux + matrizAdj[sol[j-1]][sol[i]] + matrizAdj[sol[i+tam-1]][sol[j]] - matrizAdj[sol[i+tam-1]][sol[i+tam]] - matrizAdj[sol[j-1]][sol[j]];
       if(newDelta < newCost) {
         pos1 = i;
         pos2 = j;
@@ -236,12 +239,12 @@ vector<int> reinsertion(double &newCost, vector<int> sol, double oldCost) {
 
   vector<int> vec;
   if(pos1 < pos2) {
-    vec.insert(vec.end(),sol.begin()+pos1,sol.begin()+pos1+k);
-    sol.erase(sol.begin()+pos1,sol.begin()+pos1+k);
-    sol.insert(sol.begin()+pos2-k,vec.begin(),vec.end());
+    vec.insert(vec.end(),sol.begin()+pos1,sol.begin()+pos1+tam);
+    sol.erase(sol.begin()+pos1,sol.begin()+pos1+tam);
+    sol.insert(sol.begin()+pos2-tam,vec.begin(),vec.end());
   } else {
-    vec.insert(vec.end(),sol.begin()+pos1,sol.begin()+pos1+k);
-    sol.erase(sol.begin()+pos1,sol.begin()+pos1+k);
+    vec.insert(vec.end(),sol.begin()+pos1,sol.begin()+pos1+tam);
+    sol.erase(sol.begin()+pos1,sol.begin()+pos1+tam);
     sol.insert(sol.begin()+pos2,vec.begin(),vec.end());
   }
 
