@@ -1,3 +1,25 @@
+# Travelling Salesman Problem:
+Resolução do TSP de forma exata utilizando o seguint modelo:
+
+<img src="https://i.imgur.com/IyLIeUq.png" title="Model" />
+
+
+## Execução:
+`python sintatico.py [-l -rd] {arquivo de entrada}`
+
+Onde:
+
+-l: Salva o log da execução do arquivo results/log
+
+-rd: Salva a saida do programa de forma tabular no arquivo README.md
+
+O arquivo de entrada é qualquer instancia paro o problemas tsp da tsplib: http://elib.zib.de/pub/mp-testdata/tsp/tsplib/tsplib.html.
+
+## Dependências:
+- Python
+- Cplex
+
+## Resultados:
 |Instância|Status da Solucao|Custo da Solucao|Duracao(seg)|
 |---------|-----------------|----------------|------------|
 |../instances/burma14.tsp|MIP_optimal|3323.000000000014|1.9648902416229248|
