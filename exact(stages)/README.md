@@ -5,13 +5,15 @@ Resolução do TSP de forma exata utilizando o seguint modelo:
 
 
 ## Execução:
-`python sintatico.py [-l -rd] {arquivo de entrada}`
+`python sintatico.py [-l -m -rd] {arquivo de entrada}`
 
 Onde:
 
 -l: Salva o log da execução do arquivo results/log
 
--rd: Salva a saida do programa de forma tabular no arquivo README.md
+-m: Reproduz o modelo utilizado no cplex no arquivo results/modelo.lp
+
+-rd: Salva a saida do programa de forma tabular em markdown no arquivo README.md
 
 O arquivo de entrada é qualquer instancia paro o problemas tsp da tsplib: http://elib.zib.de/pub/mp-testdata/tsp/tsplib/tsplib.html.
 
