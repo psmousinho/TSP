@@ -93,6 +93,9 @@ def main():
         f.write("Solution: " + str(sol) + "\n")
         f.write("Duration(secs): " + str(dur) + "\n\n")
         f.close()
+    if(sys.argv.__contains__("-wt")):
+        f = open("README.md", "a")
+        f.write("|" + sys.argv[1] + "|" + prob.solution.status[prob.solution.get_status()] + "|" + str(prob.solution.get_objective_value()) + "|" + str(dur) + "|")
     else:
         print("\nSolution status = ", prob.solution.get_status(), ":", prob.solution.status[prob.solution.get_status()])
         print("Solution value  = " , prob.solution.get_objective_value())
