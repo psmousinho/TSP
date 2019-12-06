@@ -22,6 +22,9 @@ O arquivo de entrada é qualquer instancia paro o problemas tsp da tsplib: http:
 - Cplex
 
 ## Resultados:
+Os valores otimos de custo para as instâncias podem ser encontrados em:  http://elib.zib.de/pub/mp-testdata/tsp/tsplib/stsp-sol.html.
+Os resultados encontrados por essa implementação podem ser encontrados a seguir:
+
 |Instância|Status da Solucao|Custo da Solucao|Duracao(seg)|
 |---------|-----------------|----------------|------------|
 |../instances/burma14.tsp|MIP_optimal|3323.000000000014|1.9648902416229248|
