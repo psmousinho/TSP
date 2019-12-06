@@ -66,9 +66,9 @@ def createProblem(v, pesos):
 def main():
     
     try:
-        v,pesos = readInstance(sys.argv[1])
+        v,pesos = readInstance(sys.argv[-1])
         prob = createProblem(v,pesos)
-        prob.write("modelo.lp")
+        prob.write("results/modelo.lp")
         st = time()
         prob.solve()
         dur = time() - st
@@ -85,22 +85,23 @@ def main():
                 if(prob.solution.get_values("y_" + str(i+1) + "_" + str(j+1) + "_" + str(t+1)) > 0.9):
                     sol.append(i+1)
     
-    if(sys.argv.__contains__("-w")):
-        f = open("results","a")
-        f.write("Instance: " + sys.argv[1]+"\n")
+    if(sys.argv.__contains__("-l")):
+        f = open("results/log","a")
+        f.write("Instance: " + sys.argv[-1]+"\n")
         f.write("Solution status: " + str(prob.solution.get_status()) + " : " + prob.solution.status[prob.solution.get_status()] + "\n")
         f.write("Solution value: " + str(prob.solution.get_objective_value()) + "\n")
         f.write("Solution: " + str(sol) + "\n")
         f.write("Duration(secs): " + str(dur) + "\n\n")
         f.close()
-    if(sys.argv.__contains__("-wt")):
+
+    if(sys.argv.__contains__("-rd")):
         f = open("README.md", "a")
-        f.write("|" + sys.argv[1] + "|" + prob.solution.status[prob.solution.get_status()] + "|" + str(prob.solution.get_objective_value()) + "|" + str(dur) + "|")
-    else:
-        print("\nSolution status = ", prob.solution.get_status(), ":", prob.solution.status[prob.solution.get_status()])
-        print("Solution value  = " , prob.solution.get_objective_value())
-        print("Solution:", sol)
-        print("Duration(secs):", dur)
+        f.write("|" + sys.argv[-1] + "|" + prob.solution.status[prob.solution.get_status()] + "|" + str(prob.solution.get_objective_value()) + "|" + str(dur) + "|\n")
+    
+    print("\nSolution status = ", prob.solution.get_status(), ":", prob.solution.status[prob.solution.get_status()])
+    print("Solution value  = " , prob.solution.get_objective_value())
+    print("Solution:", sol)
+    print("Duration(secs):", dur)
 
 
 if __name__ == "__main__":

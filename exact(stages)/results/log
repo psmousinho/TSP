@@ -1,0 +1,78 @@
+Instance: instances/bays29.tsp
+Solution status: 101 : MIP_optimal
+Solution value: 2020.0000000000557
+Solution: [1, 28, 6, 12, 9, 5, 26, 29, 3, 2, 20, 10, 4, 15, 18, 17, 14, 22, 11, 19, 25, 7, 23, 27, 8, 24, 16, 13, 21]
+Duration(secs): 259.8352282047272
+
+Instance: instances/dantzig42.tsp
+Solution status: 113 : MIP_abort_feasible
+Solution value: 833.9999999999993
+Solution: [1, 41, 42, 2, 39, 38, 37, 36, 35, 34, 32, 33, 29, 28, 27, 26, 30, 31, 4, 3, 25, 11, 12, 23, 22, 21, 20, 19, 18, 15, 14, 16, 17, 13, 24, 10, 9, 8, 7, 6, 5, 40]
+Duration(secs): 3319.1425580978394
+
+Instance: instances/swiss42.tsp
+Solution status: 101 : MIP_optimal
+Solution value: 1273.0000000001398
+Solution: [1, 33, 35, 34, 21, 36, 37, 32, 18, 8, 38, 16, 17, 15, 20, 14, 6, 27, 19, 13, 12, 26, 11, 9, 42, 24, 10, 22, 41, 25, 40, 23, 39, 31, 30, 29, 28, 3, 4, 5, 7, 2]
+Duration(secs): 5267.288419008255
+
+Instance: instances/att48.tsp
+Solution status: 113 : MIP_abort_feasible
+Solution value: 11096.0
+Solution: [1, 8, 38, 31, 7, 44, 18, 36, 28, 6, 37, 19, 27, 17, 43, 30, 20, 47, 21, 13, 14, 25, 39, 32, 24, 10, 45, 35, 4, 26, 42, 2, 29, 5, 48, 34, 41, 16, 22, 3, 23, 11, 12, 33, 46, 15, 40, 9]
+Duration(secs): 22271.526964187622
+
+Instance: ../instances/burma14.tsp
+Solution status: 101 : MIP_optimal
+Solution value: 3323.000000000014
+Solution: [1, 10, 9, 11, 8, 13, 7, 12, 6, 5, 4, 3, 14, 2]
+Duration(secs): 1.9648902416229248
+
+Instance: ../instances/ulysses16.tsp
+Solution status: 101 : MIP_optimal
+Solution value: 6858.999999999987
+Solution: [1, 8, 4, 2, 3, 16, 10, 9, 11, 5, 15, 6, 7, 12, 13, 14]
+Duration(secs): 10.700449705123901
+
+Instance: ../instances/gr17.tsp
+Solution status: 101 : MIP_optimal
+Solution value: 2084.999999999999
+Solution: [1, 4, 13, 7, 8, 6, 17, 14, 15, 3, 11, 10, 2, 5, 9, 12, 16]
+Duration(secs): 5.252423524856567
+
+Instance: ../instances/gr21.tsp
+Solution status: 101 : MIP_optimal
+Solution value: 2706.999999999992
+Solution: [1, 12, 4, 11, 20, 19, 17, 10, 18, 13, 14, 15, 21, 2, 3, 9, 5, 16, 6, 8, 7]
+Duration(secs): 1.9691967964172363
+
+Instance: ../instances/ulysses22.tsp
+Solution status: 101 : MIP_optimal
+Solution value: 7012.999999993599
+Solution: [1, 8, 18, 4, 22, 17, 2, 3, 16, 21, 20, 19, 10, 9, 11, 5, 15, 6, 7, 12, 13, 14]
+Duration(secs): 46.9362850189209
+
+Instance: ../instances/gr24.tsp
+Solution status: 101 : MIP_optimal
+Solution value: 1272.0000000000418
+Solution: [1, 16, 11, 3, 7, 6, 24, 8, 21, 5, 10, 17, 18, 22, 19, 15, 2, 20, 14, 13, 9, 23, 4, 12]
+Duration(secs): 125.89890050888062
+
+Instance: ../instances/fri26.tsp
+Solution status: 101 : MIP_optimal
+Solution value: 937.0000000000975
+Solution: [1, 25, 24, 23, 26, 22, 21, 17, 18, 20, 19, 16, 11, 13, 12, 15, 14, 10, 9, 8, 7, 5, 6, 4, 3, 2]
+Duration(secs): 23.447660207748413
+
+Instance: ../instances/bayg29.tsp
+Solution status: 101 : MIP_optimal
+Solution value: 1609.9999999999927
+Solution: [1, 28, 6, 12, 9, 26, 3, 29, 5, 21, 2, 20, 10, 4, 15, 18, 14, 17, 22, 11, 19, 25, 7, 23, 8, 27, 16, 13, 24]
+Duration(secs): 529.0106751918793
+
+Instance: ../instances/bays29.tsp
+Solution status: 101 : MIP_optimal
+Solution value: 2020.0000000000557
+Solution: [1, 28, 6, 12, 9, 5, 26, 29, 3, 2, 20, 10, 4, 15, 18, 17, 14, 22, 11, 19, 25, 7, 23, 27, 8, 24, 16, 13, 21]
+Duration(secs): 307.5237355232239
+
