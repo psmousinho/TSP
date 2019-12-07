@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 import sys
 import cplex
 from cplex.exceptions import CplexError
@@ -10,6 +10,7 @@ def createProblem(v, pesos):
     prob = cplex.Cplex()
     prob.objective.set_sense(prob.objective.sense.minimize)
 
+    #Criacao das variaveis
     for i in range(v):
         for j in range(v):
             if(i == j):
@@ -17,28 +18,31 @@ def createProblem(v, pesos):
             for t in range(v):
                prob.variables.add(obj=[pesos[i][j]], lb=[0], ub=[1], types="I", names=["y_" + str(i+1) + "_" + str(j+1) + "_" + str(t+1)]) 
 
+    #Definicao das restricoes de grau e de estagios
     for i in range(v):
-        var_list = []
-        coeff_list = []
+        var_list1 = []
+        coeff_list1 = []
+        var_list2 = []
+        coeff_list2 = []
+        var_list3 = []
+        coeff_list3 = []
         for j in range(v):
             if(i == j):
                 continue
             for t in range(v):
-                var_list.append("y_" + str(i+1) + "_" + str(j+1) + "_"  +str(t+1))
-                coeff_list.append(1)
-        prob.linear_constraints.add(lin_expr=[[var_list, coeff_list]], senses = "E", rhs=[1], names = ["GRAU_OUT_v" + str(i+1)])
-    
-    for i in range(v):
-        var_list = []
-        coeff_list = []
-        for j in range(v):
-            if(i == j):
-                continue
-            for t in range(v):
-                var_list.append("y_" + str(j+1) + "_" + str(i+1) + "_" + str(t+1))
-                coeff_list.append(1)
-        prob.linear_constraints.add(lin_expr=[[var_list, coeff_list]], senses = "E", rhs=[1], names = ["GRAU_IN_v" + str(i+1)])
-    
+                var_list1.append("y_" + str(i+1) + "_" + str(j+1) + "_"  +str(t+1))
+                coeff_list1.append(1)
+                var_list2.append("y_" + str(j+1) + "_" + str(i+1) + "_" + str(t+1))
+                coeff_list2.append(1)
+                if(i > 0):
+                    var_list3.extend( [ "y_" + str(i+1) + "_" + str(j+1) + "_" + str(t+1), "y_" + str(j+1) + "_" + str(i+1) + "_" + str(t+1) ] ) 
+                    coeff_list3.extend([(t+1),-(t+1)])
+        prob.linear_constraints.add(lin_expr=[[var_list1, coeff_list1]], senses = "E", rhs=[1], names = ["GRAU_OUT_v" + str(i+1)])
+        prob.linear_constraints.add(lin_expr=[[var_list2, coeff_list2]], senses = "E", rhs=[1], names = ["GRAU_IN_v" + str(i+1)])        
+        if(i > 0):
+            prob.linear_constraints.add(lin_expr=[[var_list3, coeff_list3]], senses = "E", rhs=[1], names = ["T_IN_T_OUT_v" + str(i+1)])
+
+    #Definicao das restricoes de unicidade do estagio
     for t in range(v):
         var_list = []
         coeff_list = []
@@ -49,17 +53,6 @@ def createProblem(v, pesos):
                 var_list.append("y_" + str(i+1) + "_" + str(j+1) + "_" + str(t+1))
                 coeff_list.append(1)
         prob.linear_constraints.add(lin_expr=[[var_list, coeff_list]], senses = "E", rhs=[1], names = ["EXC_t" + str(t+1)])
-
-    for i in range(1,v):
-        var_list = []
-        coeff_list = []
-        for j in range(v):
-            if(i==j):
-                continue
-            for t in range(v):
-                 var_list.extend( [ "y_" + str(i+1) + "_" + str(j+1) + "_" + str(t+1), "y_" + str(j+1) + "_" + str(i+1) + "_" + str(t+1) ] ) 
-                 coeff_list.extend([(t+1),-(t+1)])
-        prob.linear_constraints.add(lin_expr=[[var_list, coeff_list]], senses = "E", rhs=[1], names = ["T_IN_T_OUT_v" + str(i+1)])
 
     return prob
 
