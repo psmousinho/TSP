@@ -69,6 +69,7 @@ def main():
         v,pesos = readInstance(sys.argv[-1])
         prob = createProblem(v,pesos)
         prob.write("results/modelo.lp")
+        prob.parameters.timelimit.set(1800)
         st = time()
         prob.solve()
         dur = time() - st
@@ -84,7 +85,7 @@ def main():
                     continue
                 if(prob.solution.get_values("y_" + str(i+1) + "_" + str(j+1) + "_" + str(t+1)) > 0.9):
                     sol.append(i+1)
-    
+
     if(sys.argv.__contains__("-l")):
         f = open("results/log","a")
         f.write("Instance: " + sys.argv[-1]+"\n")
@@ -97,6 +98,7 @@ def main():
     if(sys.argv.__contains__("-rd")):
         f = open("README.md", "a")
         f.write("|" + sys.argv[-1] + "|" + prob.solution.status[prob.solution.get_status()] + "|" + str(prob.solution.get_objective_value()) + "|" + str(dur) + "|\n")
+        f.close()
     
     print("\nSolution status = ", prob.solution.get_status(), ":", prob.solution.status[prob.solution.get_status()])
     print("Solution value  = " , prob.solution.get_objective_value())

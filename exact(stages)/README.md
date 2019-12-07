@@ -5,13 +5,11 @@ Resolução do TSP de forma exata utilizando o seguint modelo:
 
 
 ## Execução:
-`python sintatico.py [-l -m -rd] {arquivo de entrada}`
+`python sintatico.py [-l -rd] {arquivo de entrada}`
 
 Onde:
 
 -l: Salva o log da execução do arquivo results/log
-
--m: Reproduz o modelo utilizado no cplex no arquivo results/modelo.lp
 
 -rd: Salva a saida do programa de forma tabular em markdown no arquivo README.md
 
@@ -36,3 +34,10 @@ Os resultados encontrados por essa implementação podem ser encontrados a segui
 |../instances/fri26.tsp|MIP_optimal|937.0000000000975|23.447660207748413|
 |../instances/bayg29.tsp|MIP_optimal|1609.9999999999927|529.0106751918793|
 |../instances/bays29.tsp|MIP_optimal|2020.0000000000557|307.5237355232239|
+|../instances/bayg29.tsp|MIP_optimal|1609.9999999999927|526.47509932518|
+|../instances/dantzig42.tsp|MIP_time_limit_feasible|833.9999999999993|1800.0358979701996|
+|../instances/swiss42.tsp|MIP_time_limit_feasible|1636.000000000021|1800.0329387187958|
+|../instances/att48.tsp|MIP_time_limit_feasible|17393.0|1800.3833413124084|
+|../instances/gr48.tsp|MIP_time_limit_feasible|7792.000000000001|1800.0471370220184|
+|../instances/hk48.tsp|MIP_time_limit_feasible|15252.999999999996|1800.0396497249603|
+|../instances/eil51.tsp|MIP_time_limit_feasible|535.0000000001205|1800.0541179180145|
