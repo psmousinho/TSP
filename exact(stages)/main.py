@@ -62,7 +62,8 @@ def main():
         v,pesos = readInstance(sys.argv[-1])
         prob = createProblem(v,pesos)
         prob.write("results/modelo.lp")
-        prob.parameters.timelimit.set(1800)
+        prob.parameters.timelimit.set(3600)
+        prob.parameters.threads.set(1)
         st = time()
         prob.solve()
         dur = time() - st
