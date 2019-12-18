@@ -5,6 +5,7 @@
 #include <vector>
 #include <cmath>
 #include <tuple>
+#include <chrono>
 
 using namespace std;
 
@@ -53,6 +54,8 @@ int main(int argc, char** argv) {
   //initializing subTourData
   initSubTourData();
   
+  auto begin = chrono::steady_clock::now();
+
   double bestCost;
   vector<int> bestSol;
   if(dimension >= 150)
@@ -60,10 +63,13 @@ int main(int argc, char** argv) {
   else
     bestSol = GILS_RVND(bestCost,50,dimension,0.5,3);
   
+  auto end = chrono::steady_clock::now();
+
   cout << 
   "INSTANCE: " << argv[1] << endl <<
   "COST: " << bestCost << endl <<
   "SEED: " << seed << endl <<
+  "DURATION(secs): " << chrono::duration_cast<chrono::seconds>(end - begin).count() << endl <<
   "ROUTE: ";
   printRoute(bestSol);
 
