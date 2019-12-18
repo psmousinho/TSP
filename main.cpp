@@ -5,10 +5,10 @@
 #include <vector>
 #include <cmath>
 #include <tuple>
-#include<chrono>
 
 using namespace std;
 
+double *** subTourData; // dados auxiliares para calculo de custos
 double ** matrizAdj; // matriz de adjacencia
 int dimension; // quantidade total de vertices
 
@@ -20,8 +20,14 @@ void two_opt(vector<int>&, double&);
 void reinsertion(vector<int>&, double&, int);
 void doubleBridge(vector<int>&, double&, const vector<int>&, double);
 
+double calCost(vector<int> &);
+inline void initSubTourData();
+inline void updateSubTourData(vector<int>&);
+
 void printMatrizAdj();
+void printSubTourMat();
 void printRoute(vector<int>);
+
 
 int main(int argc, char** argv) {
   if (argc < 2) {
@@ -34,7 +40,6 @@ int main(int argc, char** argv) {
     cout << " ./exec Instancia [Seed]" << endl;
     exit(1);
   }
-  
   long int seed;
   if(argc == 3) {
     seed = atol(argv[2]);
@@ -42,13 +47,16 @@ int main(int argc, char** argv) {
     seed = time(nullptr);
   }
   srand(seed);
-
+  
+  //initializing dimension, matrizADJ
   readData(argv[1], &dimension, &matrizAdj);
-
+  //initializing subTourData
+  initSubTourData();
+  
   double bestCost;
   vector<int> bestSol;
   if(dimension >= 150)
-    bestSol = GILS_RVND(bestCost,25,dimension/2,0.5,3);
+    bestSol = GILS_RVND(bestCost,50,dimension/2,0.5,3);
   else
     bestSol = GILS_RVND(bestCost,50,dimension,0.5,3);
   
@@ -58,7 +66,7 @@ int main(int argc, char** argv) {
   "SEED: " << seed << endl <<
   "ROUTE: ";
   printRoute(bestSol);
-  
+
   return 0;
 }
 
@@ -69,7 +77,7 @@ vector<int> GILS_RVND(double &bestCost, int Ig, int Iils, double alpha, int size
   for(int i = 0; i < Ig; i++) {
     double cost, newCost;
     vector<int> sol, newSol;
-    cout << "reiniciando GRASP " << i << "/" << Ig << endl;
+    cout << "reiniciando GRASP " << i+1 << "/" << Ig << endl;
     initSol(sol, cost, sizeInitSubTour, alpha);
     newSol = sol;
     newCost = cost;
@@ -103,7 +111,6 @@ void initSol(vector<int> &sol, double &cost, int sizeInitSubTour, double alpha) 
 
   for(int i = 0; i < sizeInitSubTour; i++) {
     int j = rand()% candidates.size();
-    cost += matrizAdj[sol[0]][candidates[j]] + matrizAdj[candidates[j]][sol[1]] - matrizAdj[sol[0]][sol[1]];
     sol.insert(sol.begin() + 1, candidates[j]);
     candidates.erase(candidates.begin() + j);
   }
@@ -122,13 +129,15 @@ void initSol(vector<int> &sol, double &cost, int sizeInitSubTour, double alpha) 
     sort(costInsert.begin(), costInsert.end());
     int index = rand()%  (int) floor(alpha*costInsert.size());
     sol.insert(sol.begin() + get<1>(costInsert[index]), candidates[get<2>(costInsert[index])]);
-    cost += get<0>(costInsert[index]);
     candidates.erase(candidates.begin() + get<2>(costInsert[index]));
   }
+  cost = calCost(sol);
 }
 
 void RVND(vector<int> &sol, double &cost) {
   vector<int> neighbors = {1,2,3,4,5};
+
+  updateSubTourData(sol);
 
   while(!neighbors.empty()) {
     int index = rand()% neighbors.size();
@@ -154,6 +163,7 @@ void RVND(vector<int> &sol, double &cost) {
 
     if(cost < oldCost) {
       neighbors = {1,2,3,4,5};
+      updateSubTourData(sol);
     } else {
       neighbors.erase(neighbors.begin()+index);
     }
@@ -166,28 +176,41 @@ void swap(vector<int> &sol, double &cost) {
 
   int solSize = sol.size();
   for(int i = 1; i < solSize-1; i++) {
-    double aux1 = - matrizAdj[sol[i]][sol[i-1]] - matrizAdj[sol[i]][sol[i+1]];
     for(int j = i+1; j < solSize-1; j++) {
-      double newDelta;
+      double C, T;
+
       if(i != j-1){
-        newDelta = aux1 + matrizAdj[sol[i]][sol[j-1]] + matrizAdj[sol[i]][sol[j+1]] + matrizAdj[sol[j]][sol[i-1]] + matrizAdj[sol[j]][sol[i+1]]
-                  - matrizAdj[sol[j]][sol[j-1]] - matrizAdj[sol[j]][sol[j+1]] ;
+        C = subTourData[0][i-1][1] + subTourData[j][j][2] * (subTourData[0][i-1][1] + matrizAdj[sol[i-1]][sol[j]]) + subTourData[j][j][1];
+        T = subTourData[0][i-1][0] + matrizAdj[sol[i-1]][sol[j]] + subTourData[j][j][0];
+
+        C = C + subTourData[i+1][j-1][2] * (T + matrizAdj[sol[j]][sol[i+1]]) + subTourData[i+1][j-1][1];
+        T = T + matrizAdj[sol[j]][sol[i+1]] + subTourData[i+1][j-1][0];
+
+        C = C + subTourData[i][i][2] * (T + matrizAdj[sol[j-1]][sol[i]]) + subTourData[i][i][1];
+        T = T + matrizAdj[sol[j-1]][sol[i]] + subTourData[i][i][0];
+
+        C = C + subTourData[j+1][solSize-1][2] * (T + matrizAdj[sol[i]][sol[j+1]]) + subTourData[j+1][solSize-1][1];
+        
       } else {
-        newDelta = matrizAdj[sol[i-1]][sol[j]] + matrizAdj[sol[j+1]][sol[i]] - matrizAdj[sol[i-1]][sol[i]] - matrizAdj[sol[j+1]][sol[j]];
+        C = subTourData[0][i-1][1] + subTourData[j][i][2] * (subTourData[0][i-1][0] + matrizAdj[sol[i-1]][sol[j]]) + subTourData[j][i][1];
+        T = subTourData[0][i-1][0] + matrizAdj[sol[i-1]][sol[j]] + subTourData[j][i][0];
+
+        C = C + subTourData[j+1][solSize-1][2] * (T + matrizAdj[sol[j+1]][sol[i]]) + subTourData[j+1][solSize-1][1];
+
       }
-      if(newDelta < delta){
+      if(C < delta){
         pos1 = i;
         pos2 = j;
-        delta = newDelta;
+        delta = C;
       }
     }
   }
 
-  if(delta < 0) {
+  if(delta < cost) {
     int aux = sol[pos1];
     sol[pos1] = sol[pos2];
     sol[pos2] = aux;
-    cost += delta;
+    cost = delta;
   }
 }
 
@@ -197,20 +220,24 @@ void two_opt(vector<int> &sol, double &cost) {
 
   int solSize = sol.size();
   for(int i = 1; i < solSize-1; i++) {
-    double aux = - matrizAdj[sol[i-1]][sol[i]];
     for(int j = i+1; j < solSize-1; j++) {
-      double newDelta =  aux + matrizAdj[sol[i-1]][sol[j]] + matrizAdj[sol[j+1]][sol[i]] - matrizAdj[sol[j+1]][sol[j]];
-      if(newDelta < delta){
+
+      double C = subTourData[0][i-1][1] + subTourData[j][i][2] * (subTourData[0][i-1][0] + matrizAdj[sol[i-1]][sol[j]]) + subTourData[j][i][1];
+      double T = subTourData[0][i-1][0] + matrizAdj[sol[i-1]][sol[j]] + subTourData[j][i][0];
+      
+      C = C + subTourData[j+1][solSize-1][2] * (T + matrizAdj[sol[i]][sol[j+1]]) + subTourData[j+1][solSize-1][1];
+      
+      if(C < delta){
         pos1 = i;
         pos2 = j;
-        delta = newDelta;
+        delta = C;
       }
     }
   }
 
-  if(delta < 0) {
+  if(delta < cost) {
     reverse(sol.begin() + pos1, sol.begin() + pos2+1);
-    cost += delta;
+    cost = delta;
   }
 }
 
@@ -220,21 +247,41 @@ void reinsertion(vector<int> &sol, double &cost, int tam) {
 
   int solSize = sol.size(); 
   for(int i = 1; i < solSize-tam; i++) {
-    double aux = + matrizAdj[sol[i-1]][sol[i+tam]] - matrizAdj[sol[i-1]][sol[i]];
     for(int j = 1; j < solSize; j++) {
       if(j >= i && j <= i+tam)
         continue;
       
-      double newDelta = aux + matrizAdj[sol[j-1]][sol[i]] + matrizAdj[sol[i+tam-1]][sol[j]] - matrizAdj[sol[i+tam-1]][sol[i+tam]] - matrizAdj[sol[j-1]][sol[j]];
-      if(newDelta < delta) {
+      double C;
+      double T;
+      if(i < j) {
+        C = subTourData[0][i-1][1] + subTourData[i+tam][j-1][2] * ( subTourData[0][i-1][0] + matrizAdj[sol[i-1]][sol[i+tam]] )+ subTourData[i+tam][j-1][1];
+        T = subTourData[0][i-1][0] + matrizAdj[sol[i-1]][sol[i+tam]] + subTourData[i+tam][j-1][0];
+
+        C = C + subTourData[i][i+tam-1][2] * ( T + matrizAdj[sol[j-1]][sol[i]] )+ subTourData[i][i+tam-1][1];
+        T = T + matrizAdj[sol[j-1]][sol[i]] + subTourData[i][i+tam-1][0];
+
+        C = C + subTourData[j][solSize-1][2] * ( T + matrizAdj[sol[i+tam-1]][sol[j]] )+ subTourData[j][solSize-1][1];
+        
+      } else {
+        C = subTourData[0][j-1][1] + subTourData[i][i+tam-1][2] * ( subTourData[0][j-1][0] + matrizAdj[sol[j-1]][sol[i]] )+ subTourData[i][i+tam-1][1];
+        T = subTourData[0][j-1][0] + matrizAdj[sol[j-1]][sol[i]] + subTourData[i][i+tam-1][0];
+
+        C = C + subTourData[j][i-1][2] * ( T + matrizAdj[sol[i+tam-1]][sol[j]] )+ subTourData[j][i-1][1];
+        T = T + matrizAdj[sol[i+tam-1]][sol[j]] + subTourData[j][i-1][0];
+
+        C = C + subTourData[i+tam][solSize-1][2] * ( T + matrizAdj[sol[i-1]][sol[i+tam]] )+ subTourData[i+tam][solSize-1][1];
+      }
+      
+      if(C < delta) {
         pos1 = i;
         pos2 = j;
-        delta = newDelta;
+        delta = C;
       }
+
     }
   }
 
-  if(delta < 0) {
+  if(delta < cost) {
     vector<int> vec;
     if(pos1 < pos2) {
       vec.insert(vec.end(),sol.begin()+pos1,sol.begin()+pos1+tam);
@@ -246,7 +293,7 @@ void reinsertion(vector<int> &sol, double &cost, int tam) {
       sol.insert(sol.begin()+pos2,vec.begin(),vec.end());
     }
 
-    cost += delta;
+    cost = delta;
   }
 }
 
@@ -264,10 +311,73 @@ void doubleBridge(vector<int> &newSol, double &newCost, const vector<int> &oldSo
   newSol.insert(newSol.end(),oldSol.begin()+pos1,oldSol.begin()+pos2);
   newSol.insert(newSol.end(), oldSol[0]);
 
-  newCost = matrizAdj[oldSol[pos1-1]][oldSol[pos3]] + matrizAdj[oldSol[oldSolSize-2]][oldSol[pos2]] + matrizAdj[oldSol[pos3-1]][oldSol[pos1]] + matrizAdj[oldSol[pos2-1]][oldSol[0]]
-           -matrizAdj[oldSol[pos1-1]][oldSol[pos1]] - matrizAdj[oldSol[pos2-1]][oldSol[pos2]] - matrizAdj[oldSol[pos3-1]][oldSol[pos3]] - matrizAdj[oldSol[oldSolSize-2]][oldSol[0]];
+  double C = subTourData[0][pos1-1][1] + subTourData[pos3][oldSolSize-2][2] * ( subTourData[0][pos1-1][0] + matrizAdj[oldSol[pos1-1]][oldSol[pos3]] )+ subTourData[pos3][oldSolSize-2][1];
+  double T = subTourData[0][pos1-1][0] + matrizAdj[oldSol[pos1-1]][oldSol[pos3]] + subTourData[pos3][oldSolSize-2][0];
+  
+  C = C + subTourData[pos2][pos3-1][2] * ( T + matrizAdj[oldSol[oldSolSize-2]][oldSol[pos2]] )+ subTourData[pos2][pos3-1][1];
+  T = T + matrizAdj[oldSol[oldSolSize-2]][oldSol[pos2]] + subTourData[pos2][pos3-1][0];
+  
+  C = C + subTourData[pos1][pos2-1][2] * ( T + matrizAdj[oldSol[pos3-1]][oldSol[pos1]] )+ subTourData[pos1][pos2-1][1];
+  T = T + matrizAdj[oldSol[pos3-1]][oldSol[pos1]] + subTourData[pos1][pos2-1][0];
 
-  newCost += oldCost;
+  C = C + subTourData[oldSolSize-1][oldSolSize-1][2] * ( T + matrizAdj[oldSol[pos2-1]][oldSol[0]] )+ subTourData[oldSolSize-1][oldSolSize-1][1];
+
+  newCost = C;
+}
+
+double calCost(vector<int> &tour) {
+  double cost = 0;
+  double delay = 0;
+  for(int i = 0; i < tour.size() -1 ; i++) {
+    cost += delay + matrizAdj[tour[i]][tour[i+1]];
+    delay += matrizAdj[tour[i]][tour[i+1]];
+  }
+  return cost;
+}
+
+inline void initSubTourData() { 
+  subTourData = new double** [dimension+1];
+  for(int i = 0; i < dimension+1; i++){
+    subTourData[i] = new double* [dimension+1];
+    for(int j = 0; j < dimension+1; j++) {
+      subTourData[i][j] = new double[3];
+    }
+  }
+
+  //origin
+  subTourData[0][0][0] = 0; 
+  subTourData[0][0][1] = 0;
+  subTourData[0][0][2] = 0;
+  //diagonal
+  for(int i = 1; i <= dimension; i++) {
+    subTourData[i][i][0] = 0;
+    subTourData[i][i][1] = 0;
+    subTourData[i][i][2] = 1;
+  }
+}
+
+inline void updateSubTourData(vector<int> &tour) {
+  int size = tour.size();
+
+  for(int s = 2; s <= size; s++) {
+    for(int i = 0; i < size - s +1; i++) {
+      int j = i + s -1;
+      //durantion
+      subTourData[i][j][0] = subTourData[i][j-1][0] + matrizAdj[tour[j-1]][tour[j]] + subTourData[j][j][0];
+      //cost
+      subTourData[i][j][1] = subTourData[i][j-1][1]+ subTourData[j][j][2] * (subTourData[i][j-1][0] + matrizAdj[tour[j-1]][tour[j]]) + subTourData[j][j][1];
+      //delay
+      subTourData[i][j][2] = subTourData[i][j-1][2] + subTourData[j][j][2];
+
+      //reverse durantion
+      subTourData[j][i][0] = subTourData[j][j][0] + matrizAdj[tour[j-1]][tour[j]] + subTourData[j-1][i][0];
+      //reverse cost
+      subTourData[j][i][1] = subTourData[j][j][1]+ subTourData[j-1][i][2] * (subTourData[j][j][0] + matrizAdj[tour[j-1]][tour[j]]) + subTourData[j-1][i][1];
+      //reverse delay
+      subTourData[j][i][2] = subTourData[j][j][2] + subTourData[j-1][i][2];
+    }
+  }
+
 }
 
 /*#################################################################################################*/
@@ -277,6 +387,15 @@ void printMatrizAdj() {
   for (size_t i = 1; i <= dimension; i++) {
     for (size_t j = 1; j <= dimension; j++) {
       cout << matrizAdj[i][j] << " ";
+    }
+    cout << endl;
+  }
+}
+
+void printSubTourMat() {
+  for (size_t i = 0; i <= dimension; i++) {
+    for (size_t j = 0; j <= dimension; j++) {
+      cout <<"("<< subTourData[i][j][0] <<","<< subTourData[i][j][1] <<","<< subTourData[i][j][2] << ") ";
     }
     cout << endl;
   }
