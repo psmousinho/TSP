@@ -34,7 +34,6 @@ int main(int argc, char** argv) {
     cout << " ./exec Instancia [Seed]" << endl;
     exit(1);
   }
-  
   long int seed;
   if(argc == 3) {
     seed = atol(argv[2]);
@@ -69,7 +68,7 @@ vector<int> GILS_RVND(double &bestCost, int Ig, int Iils, double alpha, int size
   for(int i = 0; i < Ig; i++) {
     double cost, newCost;
     vector<int> sol, newSol;
-    cout << "reiniciando GRASP " << i << "/" << Ig << endl;
+    clog << "Reiniciando GRASP " << i+1 << "/" << Ig << endl;
     initSol(sol, cost, sizeInitSubTour, alpha);
     newSol = sol;
     newCost = cost;
@@ -87,8 +86,7 @@ vector<int> GILS_RVND(double &bestCost, int Ig, int Iils, double alpha, int size
     if(cost < bestCost) {
       bestSol = sol;
       bestCost = cost;
-      cout << "Atualizando melhor custo: " << bestCost << endl;
-      printRoute(bestSol);
+      clog << "Atualizando melhor custo: " << bestCost << endl;
     }
   }
 
