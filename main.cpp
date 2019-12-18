@@ -77,7 +77,7 @@ vector<int> GILS_RVND(double &bestCost, int Ig, int Iils, double alpha, int size
   for(int i = 0; i < Ig; i++) {
     double cost, newCost;
     vector<int> sol, newSol;
-    cout << "reiniciando GRASP " << i+1 << "/" << Ig << endl;
+    clog << "reiniciando GRASP " << i+1 << "/" << Ig << endl;
     initSol(sol, cost, sizeInitSubTour, alpha);
     newSol = sol;
     newCost = cost;
@@ -95,8 +95,7 @@ vector<int> GILS_RVND(double &bestCost, int Ig, int Iils, double alpha, int size
     if(cost < bestCost) {
       bestSol = sol;
       bestCost = cost;
-      cout << "Atualizando melhor custo: " << bestCost << endl;
-      printRoute(bestSol);
+      clog << "Atualizando melhor custo: " << bestCost << endl;
     }
   }
 
