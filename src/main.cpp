@@ -39,13 +39,13 @@ typedef struct node {
 		//Bloquia os pares no problema
 		for(pair<int, int> p : arcosProibidos) {
 			prob.cost[p.first][p.second] = INFINITE;
-			prob.cost[p.second][p.first] = INFINITE;
+			//prob.cost[p.second][p.first] = INFINITE;
 		}
 
 		//Resolve o Problema
 		lb = hungarian_solve(&prob);
 		
-		//Descobre os Subtours retornados pelo alg. hungaro
+		//Descobre os subtours retornados pelo alg. hungaro
 		bool visited[pSize] = {false};
 		int count = 0, current = 0;
 		while(count < pSize) {
@@ -91,6 +91,7 @@ typedef struct node {
 			}
 
 			//retirar nos onde um vertice foi bloqueado de se conectar com todos os outros
+			//posivel bug?
 			podar = (size == 2);
 		}
 	}
@@ -108,7 +109,7 @@ typedef struct node {
 		cout << endl;
 		
 		cout << "lb: " << lb;
-		cout << " esco: " << escolhido;
+		cout << " escolhido: " << escolhido;
 		cout << " podar: " << podar << endl;
 	}
 	
@@ -185,7 +186,6 @@ void initSol(vector<int> &sol, double &cost) {
 
 void BB(vector<int> &bestSol, double &ub) {
 	//Heuristic solution
-	double i = 0;
 	initSol(bestSol, ub);
 	
 	//Nodes queue sort by lowerBound
@@ -202,7 +202,7 @@ void BB(vector<int> &bestSol, double &ub) {
 		
 		Node node = queue.top();
 		queue.pop();
-		node.printNode();
+		//node.printNode();
 
 		if(node.podar) {
 			//new cheaper solution
@@ -228,7 +228,6 @@ void BB(vector<int> &bestSol, double &ub) {
 					queue.push(newNode);
 				}
 			}
-
 		}
 
 	}
