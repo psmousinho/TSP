@@ -5,6 +5,7 @@
 #include <numeric>
 #include <vector>
 #include <queue>
+#include <chrono>
 
 using namespace std;
 
@@ -84,19 +85,17 @@ typedef struct node {
 			int size = INFINITE;
 			escolhido = 0;
 			for(size_t i = 0; i < subTours.size(); i++) {
-				if(subTours[i].size() < size && subTours[i].size()) {
+				if(subTours[i].size() < size) {
 					size = subTours[i].size();
 					escolhido = i;
 				}
 			}
-
-			//retirar nos onde um vertice foi bloqueado de se conectar com todos os outros
-			//posivel bug?
-			podar = (size == 2);
 		}
+
 	}
 
 	void printNode() {
+		cout << endl;
 		cout << "SubTours:\n";
 		for(vector<int> s : subTours){
 			printTour(s);
@@ -131,11 +130,15 @@ int main(int argc, char** argv) {
 	vector<int> sol;
 	double cost = 0;
 	
+	auto begin = chrono::steady_clock::now();
 	BB(sol,cost);
+	auto end = chrono::steady_clock::now();
 
-	cout << 
-	"Cost: " << cost << endl <<
-	"Route: ";
+	cout <<
+	"INSTANCE: " << argv[1] << endl << 
+	"COST: " << cost << endl <<
+	"DURANTION(secs): " << chrono::duration_cast<chrono::seconds>(end-begin).count() << endl <<
+	"ROUTE: ";
 	printTour(sol);
 	
 	for (int i = 0; i < instance->getDimension(); i++) delete [] costMat[i];
@@ -209,6 +212,7 @@ void BB(vector<int> &bestSol, double &ub) {
 			if(node.lb < ub) {
 				bestSol = node.subTours[0];
 				ub = node.lb;
+				//node.printNode();
 			}
 
 		} else {
