@@ -14,7 +14,7 @@ double** costMat;
 
 void initSol(vector<int>&, double&);
 void BB(vector<int>&, double&);
-void printTour(vector<int>&);
+void printTour(vector<int>&, bool);
 void printMatrizAdj();
 
 
@@ -95,21 +95,21 @@ typedef struct node {
 	}
 
 	void printNode() {
-		cout << endl;
-		cout << "SubTours:\n";
+		clog << endl;
+		clog << "SubTours:\n";
 		for(vector<int> s : subTours){
-			printTour(s);
+			printTour(s,false);
 		}
 
-		cout << "Proibidos: ";
+		clog << "Proibidos: ";
 		for(pair<int,int> p : arcosProibidos){
-			cout << "(" << p.first << "," << p.second << ")," ;
+			clog << "(" << p.first << "," << p.second << ")," ;
 		}
-		cout << endl;
+		clog << endl;
 		
-		cout << "lb: " << lb;
-		cout << " escolhido: " << escolhido;
-		cout << " podar: " << podar << endl;
+		clog << "lb: " << lb;
+		clog << " escolhido: " << escolhido;
+		clog << " podar: " << podar << endl;
 	}
 	
 } Node;
@@ -139,7 +139,7 @@ int main(int argc, char** argv) {
 	"COST: " << cost << endl <<
 	"DURANTION(secs): " << chrono::duration_cast<chrono::seconds>(end-begin).count() << endl <<
 	"ROUTE: ";
-	printTour(sol);
+	printTour(sol,true);
 	
 	for (int i = 0; i < instance->getDimension(); i++) delete [] costMat[i];
 	delete [] costMat;
@@ -198,21 +198,19 @@ void BB(vector<int> &bestSol, double &ub) {
 	Node root;
 	root.solve();
 	queue.push(root);
-	//root.printNode();
 	
 	//Branch and Bound
 	while(!queue.empty()) {
 		
 		Node node = queue.top();
 		queue.pop();
-		//node.printNode();
 
 		if(node.podar) {
 			//new cheaper solution
 			if(node.lb < ub) {
 				bestSol = node.subTours[0];
 				ub = node.lb;
-				//node.printNode();
+				node.printNode();
 			}
 
 		} else {
@@ -225,7 +223,6 @@ void BB(vector<int> &bestSol, double &ub) {
 				newNode.arcosProibidos.push_back(newArcoProibido);		
 
 				newNode.solve();
-				//newNode.printNode();
 
 				//bound
 				if(newNode.lb < ub){
@@ -238,13 +235,22 @@ void BB(vector<int> &bestSol, double &ub) {
 
 }
 
-void printTour(vector<int> &tour) {
-  size_t i;
-  cout << "{";
-  for(i = 0; i < tour.size()-1;i++) {
-    cout << tour[i] << ",";
-  }
-  cout <<tour[i]<< "}\n\n";
+void printTour(vector<int> &tour, bool out) {
+	if(out) {
+		size_t i;
+		cout << "{";
+		for(i = 0; i < tour.size()-1;i++) {
+			cout << tour[i] << ",";
+		}
+		cout << tour[i]<< "}\n\n"; 
+	} else {
+	 	size_t i;
+		clog << "{";
+		for(i = 0; i < tour.size()-1;i++) {
+			clog << tour[i] << ",";
+		}
+		clog << tour[i]<< "}\n\n";
+  	}
 }
 
 void printMatrizAdj() {
