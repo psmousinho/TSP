@@ -302,7 +302,9 @@ void reinsertion(vector<int> &sol, double &cost, int tam) {
   }
 }
 
-void doubleBridge(vector<int> &newSol, double &newCost, const vector<int> &oldSol, double oldCost) {
+void doubleBridge(vector<int> &newSol, double &newCost, vector<int> &oldSol, double oldCost) {
+  updateSubTourData(oldSol);
+  
   int oldSolSize = oldSol.size();
   int intervalSize = oldSolSize/4;
   int pos1 = 1 + rand()%intervalSize;
