@@ -19,7 +19,7 @@ void RVND(vector<int>&, double&);
 void swap(vector<int>&, double&);
 void two_opt(vector<int>&, double&);
 void reinsertion(vector<int>&, double&, int);
-void doubleBridge(vector<int>&, double&, const vector<int>&, double);
+void doubleBridge(vector<int>&, double&, vector<int>&, double);
 
 double calCost(vector<int> &);
 inline void initSubTourData();
@@ -304,7 +304,7 @@ void reinsertion(vector<int> &sol, double &cost, int tam) {
 
 void doubleBridge(vector<int> &newSol, double &newCost, vector<int> &oldSol, double oldCost) {
   updateSubTourData(oldSol);
-  
+
   int oldSolSize = oldSol.size();
   int intervalSize = oldSolSize/4;
   int pos1 = 1 + rand()%intervalSize;
