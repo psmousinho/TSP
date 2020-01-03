@@ -13,7 +13,10 @@ Data* instance;
 double** costMat;
 
 void initSol(vector<int>&, double&);
-void BB(vector<int>&, double&);
+void BB_best(vector<int>&, double&);
+void BB_breadth(vector<int>&, double&);
+void BB_depth(vector<int>&, double&);
+
 void printTour(vector<int>&, bool);
 void printMatrizAdj();
 
@@ -131,7 +134,7 @@ int main(int argc, char** argv) {
 	double cost = 0;
 	
 	auto begin = chrono::steady_clock::now();
-	BB(sol,cost);
+	BB_best(sol,cost);
 	auto end = chrono::steady_clock::now();
 
 	cout <<
@@ -187,7 +190,7 @@ void initSol(vector<int> &sol, double &cost) {
   	}
 }
 
-void BB(vector<int> &bestSol, double &ub) {
+void BB_best(vector<int> &bestSol, double &ub) {
 	//Heuristic solution
 	initSol(bestSol, ub);
 	
@@ -227,6 +230,102 @@ void BB(vector<int> &bestSol, double &ub) {
 				//bound
 				if(newNode.lb < ub){
 					queue.push(newNode);
+				}
+			}
+		}
+
+	}
+
+}
+
+void BB_breadth(vector<int> &bestSol, double &ub) {
+	//Heuristic solution
+	initSol(bestSol, ub);
+	
+	//Nodes queue sort by lowerBound
+	vector<Node> queue;
+	
+	//Init queue
+	Node root;
+	root.solve();
+	queue.push_back(root);
+	
+	//Branch and Bound
+	while(!queue.empty()) {
+		cout << queue.size() << endl;
+		Node node = queue.front();
+		queue.erase(queue.begin());
+
+		if(node.podar) {
+			//new cheaper solution
+			if(node.lb < ub) {
+				bestSol = node.subTours[0];
+				ub = node.lb;
+				node.printNode();
+			}
+
+		} else {
+			//branch
+			for(size_t i = 0; i < node.subTours[node.escolhido].size() -1; i++) {
+				Node newNode;
+				
+				newNode.arcosProibidos = node.arcosProibidos;
+				pair<int,int> newArcoProibido(node.subTours[node.escolhido][i],node.subTours[node.escolhido][i+1]);	
+				newNode.arcosProibidos.push_back(newArcoProibido);		
+
+				newNode.solve();
+
+				//bound
+				if(newNode.lb < ub){
+					queue.push_back(newNode);
+				}
+			}
+		}
+
+	}
+
+}
+
+void BB_depth(vector<int> &bestSol, double &ub) {
+	//Heuristic solution
+	initSol(bestSol, ub);
+	
+	//Nodes queue sort by lowerBound
+	vector<Node> queue;
+	
+	//Init queue
+	Node root;
+	root.solve();
+	queue.push_back(root);
+	
+	//Branch and Bound
+	while(!queue.empty()) {
+		
+		Node node = queue.back();
+		queue.pop_back();
+
+		if(node.podar) {
+			//new cheaper solution
+			if(node.lb < ub) {
+				bestSol = node.subTours[0];
+				ub = node.lb;
+				node.printNode();
+			}
+
+		} else {
+			//branch
+			for(size_t i = 0; i < node.subTours[node.escolhido].size() -1; i++) {
+				Node newNode;
+				
+				newNode.arcosProibidos = node.arcosProibidos;
+				pair<int,int> newArcoProibido(node.subTours[node.escolhido][i],node.subTours[node.escolhido][i+1]);	
+				newNode.arcosProibidos.push_back(newArcoProibido);		
+
+				newNode.solve();
+
+				//bound
+				if(newNode.lb < ub){
+					queue.push_back(newNode);
 				}
 			}
 		}
